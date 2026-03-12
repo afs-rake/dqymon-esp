@@ -1,5 +1,5 @@
 --[[
-    DqymonESP V8 (Auto-Load System)
+    DqymonESP
 ]]
 
 local success, err = pcall(function()
@@ -17,8 +17,8 @@ local success, err = pcall(function()
     local mouse = lplr:GetMouse()
     local coreGui = game:GetService("CoreGui") or lplr:FindFirstChild("PlayerGui")
     
-    if coreGui:FindFirstChild("GhostMenuV6") then
-        coreGui.GhostMenuV6:Destroy()
+    if coreGui:FindFirstChild("GhostMenu") then
+        coreGui.GhostMenu:Destroy()
     end
 
     local configs = {
@@ -38,7 +38,7 @@ local success, err = pcall(function()
     local espObjects = {}
 
     local sg = Instance.new("ScreenGui")
-    sg.Name = "GhostMenuV6"
+    sg.Name = "GhostMenu"
     sg.ResetOnSpawn = false
     sg.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     sg.Parent = coreGui
@@ -60,7 +60,7 @@ local success, err = pcall(function()
     loadTitle.Size = UDim2.new(1, 0, 0, 40)
     loadTitle.Position = UDim2.new(0, 0, 0, 10)
     loadTitle.BackgroundTransparency = 1
-    loadTitle.Text = "DQYMON ULTIMATE"
+    loadTitle.Text = "DQYMON ESP"
     loadTitle.TextColor3 = Color3.fromRGB(0, 255, 255)
     loadTitle.Font = Enum.Font.GothamBlack
     loadTitle.TextSize = 20
@@ -109,7 +109,7 @@ local success, err = pcall(function()
     watermark.TextColor3 = Color3.fromRGB(255, 255, 255)
     watermark.Font = Enum.Font.GothamSemibold
     watermark.TextSize = 12
-    watermark.Text = "DqymonESP v8 | FPS: -- | Ping: --"
+    watermark.Text = "DqymonESP | FPS: -- | Ping: --"
     watermark.TextXAlignment = Enum.TextXAlignment.Center
     Instance.new("UICorner", watermark).CornerRadius = UDim.new(0, 6)
     
@@ -538,7 +538,7 @@ local success, err = pcall(function()
     Instance.new("UICorner", fovCircle).CornerRadius = UDim.new(1, 0)
     Instance.new("UIStroke", fovCircle).Color = Color3.fromRGB(0, 255, 255)
 
-    local MainUI = Library:CreateWindow("DQYMON ULTIMATE")
+    local MainUI = Library:CreateWindow("DQYMON ESP")
     
     local TabAimbot = MainUI:CreateTab("Aimbot")
     local TabVisuals = MainUI:CreateTab("Visuals")
@@ -770,7 +770,7 @@ local success, err = pcall(function()
         fpsCount = fpsCount + 1
         if tick() - lastTime >= 1 then
             local ping = string.split(tostring(stats.Network.ServerStatsItem["Data Ping"]:GetValue()), ".")[1]
-            watermark.Text = string.format("DqymonESP v8 | FPS: %d | Ping: %sms", fpsCount, ping)
+            watermark.Text = string.format("DqymonESP | FPS: %d | Ping: %sms", fpsCount, ping)
             fpsCount = 0; lastTime = tick()
         end
 
