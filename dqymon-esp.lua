@@ -111,7 +111,7 @@ local success, err = pcall(function()
         ts:Create(loadSub, Constants.Animations.SlowTween, {TextTransparency = 1}):Play()
         ts:Create(barBg, Constants.Animations.SlowTween, {BackgroundTransparency = 1}):Play()
         ts:Create(barFill, Constants.Animations.SlowTween, {BackgroundTransparency = 1}):Play()
-        task.wait(Constants.Animations.SlowTween.Length or 0.5)
+        task.wait(Constants.Animations.SlowTween.Time or 0.5)
         loadFrame:Destroy()
     end
     

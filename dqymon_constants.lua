@@ -40,20 +40,25 @@ local function DetectCapabilities()
     
     -- Test debug.getinfo
     pcall(function()
-        debug.getinfo(1)
-        caps.HasDebugGetInfo = true
+        if debug and debug.getinfo then
+            debug.getinfo(1)
+            caps.HasDebugGetInfo = true
+        end
     end)
     
-    -- Test debug.setlocal
+    -- Test debug.setlocal (safely - don't actually modify)
     pcall(function()
-        debug.setlocal(1, 1, nil)
-        caps.HasDebugSetLocal = true
+        if debug and debug.setlocal then
+            caps.HasDebugSetLocal = true
+        end
     end)
     
     -- Test newcclosure (wraps functions)
     pcall(function()
-        newcclosure(function() end)
-        caps.HasNewCClosure = true
+        if newcclosure then
+            newcclosure(function() end)
+            caps.HasNewCClosure = true
+        end
     end)
     
     -- Summary: Full UNC = has most/all, Partial = has some, None = has none

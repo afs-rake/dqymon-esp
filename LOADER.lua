@@ -57,6 +57,12 @@ local function loadModule(filename)
         error("[DQYMON] Execution error in " .. filename .. ": " .. tostring(result))
     end
     
+    -- Main script doesn't return anything - that's OK
+    if filename == "dqymon-esp.lua" then
+        print("[DQYMON] ✅ Successfully loaded " .. filename)
+        return true
+    end
+    
     if result == nil then
         error("[DQYMON] " .. filename .. " did not return a value")
     end
