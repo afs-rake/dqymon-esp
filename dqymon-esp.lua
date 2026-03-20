@@ -7,7 +7,7 @@ local success, err = pcall(function()
     -- ==========================================
     -- DEPENDENCY LOADING
     -- ==========================================
-    local Constants, UILibrary, ConfigSystem
+    local Constants, UILibrary, ConfigSystem, Utils
     
     -- Try require() first (for module placement in Roblox)
     if script.Parent then
@@ -15,6 +15,7 @@ local success, err = pcall(function()
             Constants = require(script.Parent:FindFirstChild("dqymon_constants"))
             UILibrary = require(script.Parent:FindFirstChild("dqymon_ui"))
             ConfigSystem = require(script.Parent:FindFirstChild("dqymon_config"))
+            Utils = require(script.Parent:FindFirstChild("dqymon_utils"))
         end)
     end
     
@@ -22,6 +23,10 @@ local success, err = pcall(function()
     Constants = Constants or _G.DqymonConstants or error("Missing dqymon_constants")
     UILibrary = UILibrary or _G.DqymonUILibrary or error("Missing dqymon_ui")
     ConfigSystem = ConfigSystem or _G.DqymonConfigSystem or error("Missing dqymon_config")
+    Utils = Utils or _G.DqymonUtils or error("Missing dqymon_utils")
+    
+    -- Print capability report
+    print(Utils.GetCapabilityReport())
     
     -- ==========================================
     -- SERVICES & VARIABLES
@@ -213,6 +218,13 @@ local success, err = pcall(function()
     TabAimbot:CreateSlider("Smoothness", 10, 100, configSystem:Get("smoothing") * 100, function(val) configSystem:Set("smoothing", val / 100) end)
     TabAimbot:CreateSlider("Dynamic Headshot %", 0, 100, configSystem:Get("headshotChance"), function(val) configSystem:Set("headshotChance", val) end)
     
+    -- Silent Aim (Mobile/UNC only)
+    if Constants.Capabilities.Level == "FULL_UNC" then
+        TabAimbot:CreateSection("Silent Aim (Mobile UNC)")
+        TabAimbot:CreateToggle("Enable Silent Aim", configSystem:Get("silentAimEnabled"), function(val) configSystem:Set("silentAimEnabled", val) end)
+        TabAimbot:CreateDropdown("Silent Aim Mode", {"Camera", "Silent"}, (function() local m = configSystem:Get("silentAimMode"); return m == "Silent" and 2 or 1 end)(), function(val) configSystem:Set("silentAimMode", val) end)
+    end
+    
     -- VISUALS TAB
     TabVisuals:CreateSection("Master Switch")
     TabVisuals:CreateToggle("Enable ESP", configSystem:Get("espEnabled"), function(val) configSystem:Set("espEnabled", val) end)
@@ -287,13 +299,35 @@ local success, err = pcall(function()
     end)
     
     -- ==========================================
-    -- MENU TOGGLE
+    -- MENU TOGGLE (Desktop & Mobile compatible)
     -- ==========================================
-    table.insert(connections, uis.InputBegan:Connect(function(input, gpe)
-        if not gpe and input.KeyCode == configSystem:Get("menuKeybind") and MainUI.MainFrame then 
-            MainUI.MainFrame.Visible = not MainUI.MainFrame.Visible 
-        end
-    end))
+    if Constants.IsDesktop then
+        -- Desktop: Keyboard toggle
+        table.insert(connections, uis.InputBegan:Connect(function(input, gpe)
+            if not gpe and input.KeyCode == configSystem:Get("menuKeybind") and MainUI.MainFrame then 
+                MainUI.MainFrame.Visible = not MainUI.MainFrame.Visible 
+            end
+        end))
+    else
+        -- Mobile: Add on-screen toggle button
+        local toggleBtn = Instance.new("TextButton", sg)
+        toggleBtn.Size = UDim2.new(0, 60, 0, 60)
+        toggleBtn.Position = UDim2.new(0, 10, 0, 10)
+        toggleBtn.BackgroundColor3 = Constants.Colors.Primary
+        toggleBtn.BackgroundTransparency = 0.3
+        toggleBtn.TextColor3 = Constants.Colors.TextLight
+        toggleBtn.Text = "MENU"
+        toggleBtn.Font = Enum.Font.GothamBold
+        toggleBtn.TextSize = 11
+        Instance.new("UICorner", toggleBtn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UIStroke", toggleBtn).Color = Constants.Colors.Primary
+        
+        table.insert(connections, toggleBtn.MouseButton1Click:Connect(function()
+            if MainUI.MainFrame then 
+                MainUI.MainFrame.Visible = not MainUI.MainFrame.Visible 
+            end
+        end))
+    end
     
     -- ==========================================
     -- ESP CORE LOGIC
@@ -399,8 +433,62 @@ local success, err = pcall(function()
             lastTime = tick()
         end
         
-        -- Update FOV circle
-        fovCircle.Position = UDim2.new(0, mouse.X - configSystem:Get("fov"), 0, mouse.Y - configSystem:Get("fov"))
+    -- ==========================================
+    -- AIMBOT ACTIVATION (Desktop vs Mobile)
+    -- ==========================================
+    local aimActive = false
+    
+    if Constants.IsDesktop then
+        -- Desktop: Mouse button press
+        table.insert(connections, uis.InputBegan:Connect(function(input, gpe)
+            if not gpe and input.UserInputType == Enum.UserInputType.MouseButton1 then
+                aimActive = configSystem:Get("aimEnabled")
+            end
+        end))
+        
+        table.insert(connections, uis.InputEnded:Connect(function(input, gpe)
+            if input.UserInputType == Enum.UserInputType.MouseButton1 then
+                aimActive = false
+            end
+        end))
+    else
+        -- Mobile: Add on-screen aimbot toggle button
+        local aimBtn = Instance.new("TextButton", sg)
+        aimBtn.Size = UDim2.new(0, 60, 0, 60)
+        aimBtn.Position = UDim2.new(1, -80, 0, 10)
+        aimBtn.BackgroundColor3 = Constants.Colors.Secondary
+        aimBtn.BackgroundTransparency = 0.3
+        aimBtn.TextColor3 = Constants.Colors.TextLight
+        aimBtn.Text = "AIM"
+        aimBtn.Font = Enum.Font.GothamBold
+        aimBtn.TextSize = 11
+        Instance.new("UICorner", aimBtn).CornerRadius = UDim.new(0, 6)
+        Instance.new("UIStroke", aimBtn).Color = Constants.Colors.Secondary
+        
+        table.insert(connections, aimBtn.MouseButton1Down:Connect(function()
+            aimActive = configSystem:Get("aimEnabled")
+            aimBtn.BackgroundTransparency = 0.1  -- Visual feedback
+        end))
+        
+        table.insert(connections, aimBtn.MouseButton1Up:Connect(function()
+            aimActive = false
+            aimBtn.BackgroundTransparency = 0.3  -- Reset
+        end))
+    end
+    
+    -- FOV circle position (use mouse on desktop, center on mobile)
+    table.insert(connections, runService.RenderStepped:Connect(function()
+        if Constants.IsDesktop then
+            fovCircle.Position = UDim2.new(0, mouse.X - configSystem:Get("fov"), 0, mouse.Y - configSystem:Get("fov"))
+        else
+            -- Mobile: Center FOV circle on screen
+            fovCircle.Position = UDim2.new(0, cam.ViewportSize.X/2 - configSystem:Get("fov"), 0, cam.ViewportSize.Y/2 - configSystem:Get("fov"))
+        end
+    end))
+    
+    -- ==========================================
+    -- AIMBOT LOGIC (Desktop & Mobile compatible)
+    -- ==========================================
         
         -- ESP Rendering
         for _, plr in pairs(plrs:GetPlayers()) do
@@ -501,9 +589,12 @@ local success, err = pcall(function()
         end
         
         -- ==========================================
-        -- AIMBOT LOGIC
+        -- AIMBOT LOGIC (Desktop & Mobile compatible)
         -- ==========================================
-        if configSystem:Get("aimEnabled") and uis:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+        if aimActive then
+            -- Get center or mouse position based on platform
+            local aimOrigin = Constants.IsDesktop and Vector2.new(mouse.X, mouse.Y) or Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+            
             if currentTargetChar and currentTargetChar:FindFirstChild("Humanoid") and currentTargetChar.Humanoid.Health > 0 then
                 local hrp = currentTargetChar:FindFirstChild("HumanoidRootPart")
                 local head = currentTargetChar:FindFirstChild("Head")
@@ -525,7 +616,7 @@ local success, err = pcall(function()
                         local targetVelocity = hrp.AssemblyLinearVelocity
                         local predictedPos = lockedTarget.Position + (targetVelocity * configSystem:Get("prediction"))
                         local pos, onScreen = cam:WorldToViewportPoint(predictedPos)
-                        local dist = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                        local dist = (Vector2.new(pos.X, pos.Y) - aimOrigin).Magnitude
                         
                         if not onScreen or dist > configSystem:Get("fov") or not IsVisible(lockedTarget) then
                             currentTargetChar = nil
@@ -550,7 +641,7 @@ local success, err = pcall(function()
                         local hrp = plr.Character:FindFirstChild("HumanoidRootPart")
                         if hrp then
                             local pos, onScreen = cam:WorldToViewportPoint(hrp.Position)
-                            local mDist = (Vector2.new(pos.X, pos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                            local mDist = (Vector2.new(pos.X, pos.Y) - aimOrigin).Magnitude
                             
                             if onScreen and mDist < bestDist and IsVisible(hrp) then
                                 bestDist = mDist
@@ -574,8 +665,26 @@ local success, err = pcall(function()
                 local hrp = currentTargetChar:FindFirstChild("HumanoidRootPart")
                 if hrp then
                     local predictedPos = lockedTarget.Position + (hrp.AssemblyLinearVelocity * configSystem:Get("prediction"))
-                    local smoothFactor = math.clamp(configSystem:Get("smoothing") * (dt * 60), 0, 1)
-                    cam.CFrame = cam.CFrame:Lerp(CFrame.new(cam.CFrame.Position, predictedPos), smoothFactor)
+                    
+                    -- Silent Aim handling
+                    if configSystem:Get("silentAimEnabled") then
+                        Utils.SetSilentAimTarget(predictedPos)
+                        
+                        if configSystem:Get("silentAimMode") == "Silent" then
+                            -- Pure silent aim: Don't move camera at all
+                            -- Silent aim target is set for hit detection hooks
+                        else
+                            -- Camera mode: Move camera for visual aid on mobile
+                            local targetCFrame = CFrame.new(cam.CFrame.Position, predictedPos)
+                            local smoothFactor = math.clamp(configSystem:Get("smoothing") * (dt * 60), 0, 1)
+                            Utils.OptimizedCameraLerp(cam, cam.CFrame, targetCFrame, smoothFactor)
+                        end
+                    else
+                        -- Regular visible aimbot
+                        local targetCFrame = CFrame.new(cam.CFrame.Position, predictedPos)
+                        local smoothFactor = math.clamp(configSystem:Get("smoothing") * (dt * 60), 0, 1)
+                        Utils.OptimizedCameraLerp(cam, cam.CFrame, targetCFrame, smoothFactor)
+                    end
                     
                     if configSystem:Get("targetInfo") then
                         local targetPlayer = plrs:GetPlayerFromCharacter(currentTargetChar)

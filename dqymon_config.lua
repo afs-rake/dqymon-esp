@@ -109,11 +109,14 @@ function ConfigSystem:Set(key, value, skipUpdaters)
 end
 
 -- ==========================================
--- FILE OPERATIONS
+-- FILE OPERATIONS (Mobile & Desktop Compatible)
 -- ==========================================
 function ConfigSystem:Save()
+    local Constants = self.Constants or require(script.Parent:FindFirstChild("dqymon_constants"))
+    local isMobile = Constants.IsMobile
+    
     if not writefile then
-        return false, "Executor doesn't support writefile"
+        return false, isMobile and "Mobile: Config save not supported on this executor" or "Executor doesn't support writefile"
     end
     
     local httpService = game:GetService("HttpService")
@@ -137,8 +140,11 @@ function ConfigSystem:Save()
 end
 
 function ConfigSystem:Load()
+    local Constants = self.Constants or require(script.Parent:FindFirstChild("dqymon_constants"))
+    local isMobile = Constants.IsMobile
+    
     if not readfile or not isfile then
-        return false, "Executor doesn't support file operations"
+        return false, isMobile and "Mobile: Config load not supported on this executor" or "Executor doesn't support file operations"
     end
     
     if not isfile(self.configName) then

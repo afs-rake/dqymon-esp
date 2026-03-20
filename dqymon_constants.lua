@@ -1,9 +1,80 @@
 --[[
     DqymonESP - Constants & Theme
     Central location for all colors, theme values, and configuration defaults
+    Mobile & Desktop compatible
 ]]
 
 local Constants = {}
+
+-- ==========================================
+-- PLATFORM DETECTION
+-- ==========================================
+Constants.IsMobile = game:GetService("UserInputService").TouchEnabled
+Constants.IsDesktop = not Constants.IsMobile
+
+-- ==========================================
+-- UNC CAPABILITY DETECTION
+-- ==========================================
+local function DetectCapabilities()
+    local caps = {
+        HasSetRawMetatable = false,
+        HasGetRawMetatable = false,
+        HasDebugGetInfo = false,
+        HasDebugSetLocal = false,
+        HasNewCClosure = false,
+    }
+    
+    -- Test setrawmetatable
+    pcall(function()
+        local t = {}
+        setrawmetatable(t, {})
+        caps.HasSetRawMetatable = true
+    end)
+    
+    -- Test getrawmetatable
+    pcall(function()
+        local t = {}
+        getrawmetatable("")
+        caps.HasGetRawMetatable = true
+    end)
+    
+    -- Test debug.getinfo
+    pcall(function()
+        debug.getinfo(1)
+        caps.HasDebugGetInfo = true
+    end)
+    
+    -- Test debug.setlocal
+    pcall(function()
+        debug.setlocal(1, 1, nil)
+        caps.HasDebugSetLocal = true
+    end)
+    
+    -- Test newcclosure (wraps functions)
+    pcall(function()
+        newcclosure(function() end)
+        caps.HasNewCClosure = true
+    end)
+    
+    -- Summary: Full UNC = has most/all, Partial = has some, None = has none
+    local unc_count = (caps.HasSetRawMetatable and 1 or 0) + 
+                      (caps.HasGetRawMetatable and 1 or 0) + 
+                      (caps.HasDebugGetInfo and 1 or 0) + 
+                      (caps.HasDebugSetLocal and 1 or 0) + 
+                      (caps.HasNewCClosure and 1 or 0)
+    
+    if unc_count >= 4 then
+        caps.Level = "FULL_UNC"
+    elseif unc_count >= 2 then
+        caps.Level = "PARTIAL_UNC"
+    else
+        caps.Level = "NO_UNC"
+    end
+    
+    return caps
+end
+
+Constants.Capabilities = DetectCapabilities()
 
 -- ==========================================
 -- COLORS & THEME
@@ -38,11 +109,13 @@ Constants.Colors = {
 }
 
 -- ==========================================
--- UI SIZING CONSTANTS
+-- UI SIZING CONSTANTS (Responsive)
 -- ==========================================
+local isMobile = Constants.IsMobile
 Constants.UI = {
-    MainWindowSize = UDim2.new(0, 350, 0, 420),
-    MainWindowPos = UDim2.new(0.5, -175, 0.5, -210),
+    -- Window sizing (responsive to device)
+    MainWindowSize = isMobile and UDim2.new(0, 280, 0, 380) or UDim2.new(0, 350, 0, 420),
+    MainWindowPos = isMobile and UDim2.new(0.5, -140, 0.5, -190) or UDim2.new(0.5, -175, 0.5, -210),
     TopBarHeight = 40,
     TabBarHeight = 35,
     CornerRadius = UDim.new(0, 8),
@@ -77,6 +150,10 @@ Constants.DefaultConfig = {
     fov = 150,
     smoothing = 0.6,
     headshotChance = 50,
+    
+    -- Silent Aim (Mobile/UNC feature)
+    silentAimEnabled = false,
+    silentAimMode = "Camera",  -- "Camera" or "Silent"
     
     -- ESP
     espEnabled = false,

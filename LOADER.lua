@@ -1,6 +1,7 @@
 -- ==========================================
 -- DQYMON ESP - UNIVERSAL LOADER
 -- Loads all modules from GitHub and executes
+-- Mobile & Desktop Compatible
 -- ==========================================
 
 local githubRaw = "https://raw.githubusercontent.com/afs-rake/dqymon/alpha/"
@@ -18,6 +19,13 @@ end
 print("[DQYMON] Loading Constants...")
 _G.DqymonConstants = loadModule("dqymon_constants.lua")
 
+-- Detect platform
+local isMobile = _G.DqymonConstants.IsMobile
+print("[DQYMON] Platform: " .. (isMobile and "MOBILE 📱" or "DESKTOP 🖥️"))
+
+print("[DQYMON] Loading Utils & Capabilities...")
+_G.DqymonUtils = loadModule("dqymon_utils.lua")
+
 print("[DQYMON] Loading UI Library...")
 _G.DqymonUILibrary = loadModule("dqymon_ui.lua")
 
@@ -27,4 +35,17 @@ _G.DqymonConfigSystem = loadModule("dqymon_config.lua")
 print("[DQYMON] Loading Main Script...")
 loadModule("dqymon-esp.lua")
 
-print("[DQYMON] Script loaded successfully!")
+print("[DQYMON] ✅ Script loaded successfully!")
+if isMobile then
+    print("[DQYMON] 📱 Mobile Controls:")
+    print("  • Press MENU button (top-left) to toggle UI")
+    print("  • Press AIM button (top-right) and hold to aimbot")
+    print("  • Config save/load may not work on all mobile executors")
+else
+    print("[DQYMON] 🖥️ Desktop Controls:")
+    print("  • Press the menu keybind to toggle UI")
+    print("  • Hold mouse button to aimbot")
+end
+
+-- Print UNC capability report
+print(_G.DqymonUtils.GetCapabilityReport())
