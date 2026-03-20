@@ -10,12 +10,13 @@ print("[DQYMON] ESP LOADER v2.0")
 print("========================================\n")
 
 local githubRaw = "https://raw.githubusercontent.com/afs-rake/dqymon/alpha/"
+local cacheBuster = "?t=" .. os.time()  -- Add cache buster
 local loadedModules = {}
 
 local function SafeHttpGet(url)
     print("[DQYMON] Fetching: " .. url)
     local success, response = pcall(function()
-        return game:HttpGet(url)
+        return game:HttpGet(url .. cacheBuster)  -- Add cache buster
     end)
     
     if not success then
@@ -122,17 +123,38 @@ end
 local success, err = pcall(Main)
 
 if not success then
-    print("\n❌ ❌ ❌ DQYMON LOADER ERROR ❌ ❌ ❌")
-    print("\nError Details:")
-    print(tostring(err))
-    print("\nDebugging Info:")
-    print("  • Loaded Modules: " .. table.concat(table.keys(loadedModules) or {"none"}, ", "))
-    print("  • Game: " .. game:GetFullName())
-    print("  • Executor: Delta Exploit (assumed)")
-    print("\nTroubleshooting:")
-    print("  1. Check internet connection")
-    print("  2. Verify GitHub is not blocked")
-    print("  3. Try again in a few seconds")
-    print("  4. Check if Delta has HttpGet enabled in settings")
-    print("\n" .. string.rep("=", 40))
+    local errorLog = ""
+    errorLog = errorLog .. "\n" .. string.rep("=", 60) .. "\n"
+    errorLog = errorLog .. "❌ ❌ ❌ DQYMON LOADER ERROR ❌ ❌ ❌\n"
+    errorLog = errorLog .. string.rep("=", 60) .. "\n\n"
+    
+    errorLog = errorLog .. "ERROR DETAILS:\n"
+    errorLog = errorLog .. tostring(err) .. "\n\n"
+    
+    errorLog = errorLog .. "DEBUGGING INFO:\n"
+    errorLog = errorLog .. "  • Loaded Modules: " .. table.concat(table.keys(loadedModules) or {"none"}, ", ") .. "\n"
+    errorLog = errorLog .. "  • Game: " .. game:GetFullName() .. "\n"
+    errorLog = errorLog .. "  • Executor: Delta Exploit (assumed)\n"
+    errorLog = errorLog .. "  • Error Type: " .. type(err) .. "\n\n"
+    
+    errorLog = errorLog .. "TROUBLESHOOTING:\n"
+    errorLog = errorLog .. "  1. Check internet connection\n"
+    errorLog = errorLog .. "  2. Verify GitHub is not blocked\n"
+    errorLog = errorLog .. "  3. Try again in a few seconds\n"
+    errorLog = errorLog .. "  4. Check if Delta has HttpGet enabled in settings\n\n"
+    
+    errorLog = errorLog .. "STACK TRACE:\n"
+    if debug and debug.traceback then
+        errorLog = errorLog .. debug.traceback() .. "\n"
+    end
+    
+    errorLog = errorLog .. "\n" .. string.rep("=", 60) .. "\n"
+    errorLog = errorLog .. "COPY THE ABOVE ERROR AND SEND TO DEVELOPER\n"
+    errorLog = errorLog .. string.rep("=", 60) .. "\n"
+    
+    -- Print the full error log
+    print(errorLog)
+    
+    -- Also use warn to ensure it's captured
+    warn(errorLog)
 end

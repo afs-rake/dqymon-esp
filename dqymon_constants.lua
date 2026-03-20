@@ -203,9 +203,16 @@ Constants.TargetUI = {
 -- ==========================================
 Constants.Animations = {
     FastTween = TweenInfo.new(0.1),
+    FastDuration = 0.1,
+    
     MediumTween = TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+    MediumDuration = 0.2,
+    
     SlowTween = TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out),
+    SlowDuration = 0.5,
+    
     LoadingTween = TweenInfo.new(1.0, Enum.EasingStyle.Quint, Enum.EasingDirection.Out),
+    LoadingDuration = 1.0,
 }
 
 -- ==========================================
