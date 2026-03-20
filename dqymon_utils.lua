@@ -3,7 +3,12 @@
     Provides capability-based optimizations and helper functions
 ]]
 
-local Constants = require(script.Parent:FindFirstChild("dqymon_constants") or error("Missing dqymon_constants"))
+local Constants
+pcall(function()
+    Constants = require(script.Parent:FindFirstChild("dqymon_constants"))
+end)
+Constants = Constants or _G.DqymonConstants
+if not Constants then error("[Utils] Missing Constants module") end
 
 local Utils = {}
 

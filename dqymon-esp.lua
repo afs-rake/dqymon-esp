@@ -722,5 +722,13 @@ local success, err = pcall(function()
 end)
 
 if not success then 
-    warn("DqymonESP Error: " .. tostring(err)) 
+    print("\n❌ ❌ ❌ DQYMON ESP ERROR ❌ ❌ ❌")
+    print("Error Details:")
+    print(tostring(err))
+    print("\nStack Trace:")
+    print(debug.traceback())
+    print(string.rep("=", 40))
+    warn("DqymonESP Error: " .. tostring(err))
+else
+    print("\n✅ ✅ ✅ DQYMON ESP LOADED ✅ ✅ ✅\n")
 end

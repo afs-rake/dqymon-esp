@@ -3,7 +3,12 @@
     Reusable UI component system for creating menus and interface elements
 ]]
 
-local Constants = require(script.Parent:FindFirstChild("dqymon_constants") or error("Missing dqymon_constants"))
+local Constants
+pcall(function()
+    Constants = require(script.Parent:FindFirstChild("dqymon_constants"))
+end)
+Constants = Constants or _G.DqymonConstants
+if not Constants then error("[UILibrary] Missing Constants module") end
 
 local UILibrary = {}
 UILibrary.__index = UILibrary
