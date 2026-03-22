@@ -498,9 +498,9 @@ local success, err = pcall(function()
     end))
     
     -- ==========================================
-    -- AIMBOT LOGIC (Desktop & Mobile compatible)
+    -- MAIN RENDER LOOP (ESP + AIMBOT)
     -- ==========================================
-        
+    table.insert(connections, runService.RenderStepped:Connect(function(dt)
         -- ESP Rendering
         for _, plr in pairs(plrs:GetPlayers()) do
             if plr ~= lplr then
