@@ -13,6 +13,10 @@ local success, err = pcall(function()
     local UI_NAME = "DqymonWord"
     local unloaded = false
     
+    if not coreGui then
+        error("Could not find CoreGui or PlayerGui")
+    end
+    
     if coreGui:FindFirstChild(UI_NAME) then coreGui[UI_NAME]:Destroy() end
 
     -- ==========================================

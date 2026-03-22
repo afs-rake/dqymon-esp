@@ -48,6 +48,10 @@ local success, err = pcall(function()
     local mouse = lplr:GetMouse()
     local coreGui = game:GetService("CoreGui") or lplr:FindFirstChild("PlayerGui")
     
+    if not coreGui then
+        error("Could not find CoreGui or PlayerGui - GUI cannot be displayed")
+    end
+    
     if coreGui:FindFirstChild("GhostMenu") then
         coreGui.GhostMenu:Destroy()
     end
