@@ -12,10 +12,17 @@ local success, err = pcall(function()
     -- Try require() first (for module placement in Roblox)
     if script.Parent then
         pcall(function()
-            Constants = require(script.Parent:FindFirstChild("dqymon_constants"))
-            UILibrary = require(script.Parent:FindFirstChild("dqymon_ui"))
-            ConfigSystem = require(script.Parent:FindFirstChild("dqymon_config"))
-            Utils = require(script.Parent:FindFirstChild("dqymon_utils"))
+            local const_module = script.Parent:FindFirstChild("dqymon_constants")
+            if const_module then Constants = require(const_module) end
+            
+            local ui_module = script.Parent:FindFirstChild("dqymon_ui")
+            if ui_module then UILibrary = require(ui_module) end
+            
+            local config_module = script.Parent:FindFirstChild("dqymon_config")
+            if config_module then ConfigSystem = require(config_module) end
+            
+            local utils_module = script.Parent:FindFirstChild("dqymon_utils")
+            if utils_module then Utils = require(utils_module) end
         end)
     end
     
