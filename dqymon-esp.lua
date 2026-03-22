@@ -358,12 +358,12 @@ local success, err = pcall(function()
     table.insert(connections, lplr.CharacterAdded:Connect(UpdateRaycastFilter))
     
     local function IsVisible(targetPart)
-        if not configSystem:Get("wallCheck") or not targetPart then 
-            return not targetPart and false or true 
+        if not configSystem:Get("wallCheck") or not targetPart or not targetPart.Parent then 
+            return targetPart ~= nil 
         end
         
         local result = workspace:Raycast(cam.CFrame.Position, targetPart.Position - cam.CFrame.Position, rayParams)
-        return not result or result.Instance:IsDescendantOf(targetPart.Parent)
+        return not result or (result.Instance and result.Instance:IsDescendantOf(targetPart.Parent))
     end
     
     local function CreateESPUI(plr)
@@ -699,12 +699,19 @@ local success, err = pcall(function()
                     
                     if configSystem:Get("targetInfo") then
                         local targetPlayer = plrs:GetPlayerFromCharacter(currentTargetChar)
-                        local hp = math.floor(currentTargetChar.Humanoid.Health)
-                        local dist = math.floor((cam.CFrame.Position - currentTargetChar.HumanoidRootPart.Position).Magnitude)
+                        local humanoid = currentTargetChar:FindFirstChild("Humanoid")
+                        local hrp = currentTargetChar:FindFirstChild("HumanoidRootPart")
                         
-                        tName.Text = "Target: " .. (targetPlayer and targetPlayer.Name or "Unknown")
-                        tHealth.Text = "HP: " .. hp .. " | Dist: " .. dist .. "m"
-                        targetUI.Visible = true
+                        if humanoid and hrp and tName and tHealth then
+                            local hp = math.floor(humanoid.Health)
+                            local dist = math.floor((cam.CFrame.Position - hrp.Position).Magnitude)
+                            
+                            tName.Text = "Target: " .. (targetPlayer and targetPlayer.Name or "Unknown")
+                            tHealth.Text = "HP: " .. hp .. " | Dist: " .. dist .. "m"
+                            targetUI.Visible = true
+                        else
+                            targetUI.Visible = false
+                        end
                     else 
                         targetUI.Visible = false 
                     end

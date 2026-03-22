@@ -117,7 +117,12 @@ end
 -- FILE OPERATIONS (Mobile & Desktop Compatible)
 -- ==========================================
 function ConfigSystem:Save()
-    local Constants = self.Constants or require(script.Parent:FindFirstChild("dqymon_constants"))
+    local Constants = self.Constants or _G.DqymonConstants
+    if not Constants and script.Parent then
+        local const_module = script.Parent:FindFirstChild("dqymon_constants")
+        if const_module then Constants = require(const_module) end
+    end
+    if not Constants then Constants = {IsMobile = false} end
     local isMobile = Constants.IsMobile
     
     if not writefile then
@@ -145,7 +150,12 @@ function ConfigSystem:Save()
 end
 
 function ConfigSystem:Load()
-    local Constants = self.Constants or require(script.Parent:FindFirstChild("dqymon_constants"))
+    local Constants = self.Constants or _G.DqymonConstants
+    if not Constants and script.Parent then
+        local const_module = script.Parent:FindFirstChild("dqymon_constants")
+        if const_module then Constants = require(const_module) end
+    end
+    if not Constants then Constants = {IsMobile = false} end
     local isMobile = Constants.IsMobile
     
     if not readfile or not isfile then
@@ -189,9 +199,11 @@ end
 
 function ConfigSystem:ApplyAllUpdaters()
     for configKey, updateFuncs in pairs(self.updaters) do
-        local value = self.currentConfig[configKey]
-        for _, updateFunc in ipairs(updateFuncs) do
-            pcall(updateFunc, value)
+        if updateFuncs and type(updateFuncs) == "table" then
+            local value = self.currentConfig[configKey]
+            for _, updateFunc in ipairs(updateFuncs) do
+                pcall(updateFunc, value)
+            end
         end
     end
 end
